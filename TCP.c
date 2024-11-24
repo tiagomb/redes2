@@ -71,16 +71,17 @@ void create_server(struct server *s){
 void receive_messages(struct server *s, int num){
     int bytes;
     struct timeval timeout = {5000/1000, (5000%1000)*1000};
+    s->cont = 0;
     setsockopt(s->connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    printf ("Recebendo bytes do cliente via TCP, %d bytes são esperados\n", num);
+    printf ("Recebendo bytes do cliente via TCP, %d bytes são esperados\n", num*MAX_SIZE);
     while (1){
         bytes = read(s->connfd, s->buffer, sizeof(s->buffer));
         if (bytes == 0)
             break;
-        s->cont++;
+        s->cont+=bytes;
         memset(s->buffer, 0, sizeof(s->buffer));
     }
-    printf ("%lld\n bytes recebidos do cliente\n", s->cont);
+    printf ("%lld bytes recebidos do cliente\n", s->cont);
     printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont*100)/(float)(num * MAX_SIZE));
     close(s->connfd);
 }

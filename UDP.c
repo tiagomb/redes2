@@ -52,19 +52,20 @@ void create_server(struct server *s){
 void receive_messages(struct server *s, int num){
     int bytes;
     socklen_t len = sizeof(s->cli);
+    s->cont = 0;
     struct timeval timeout = {5000/1000, (5000%1000)*1000};
     setsockopt(s->sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    printf ("Recebendo bytes do cliente via UDP, %d bytes são esperados\n", num*100);
+    printf ("Recebendo bytes do cliente via UDP, %d bytes são esperados\n", num*MAX_SIZE);
     long long int inicio = timestamp();
     while (1){
-        bytes = recvfrom(s->sockfd, s->buffer, sizeof(s->buffer), MSG_WAITALL, (struct sockaddr*)&s->cli, &len);
+        bytes = recvfrom(s->sockfd, s->buffer, sizeof(s->buffer), 0, (struct sockaddr*)&s->cli, &len);
         if (bytes == 0 || bytes == -1)
             break;
         s->cont+=bytes;
         memset(s->buffer, 0, sizeof(s->buffer));
     }
-    printf ("%lld\n bytes recebidos do servidor\n", s->cont);
-    printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont * 100)/(float)(num * 65535));
+    printf ("%lld bytes recebidos do servidor\n", s->cont);
+    printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont * 100)/(float)(num * MAX_SIZE));
 }
 
 
