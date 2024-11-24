@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
+#include <string.h>
 
 void create_client(struct client *c){
     c->sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -22,18 +24,23 @@ void create_client(struct client *c){
 void send_messages(struct client *c, int num){
     long long int fim, inicio;
     int bytes;
-    for (int i = 0; i < 1000; i++){
-        c->buffer[i] = 0;
+    for (int i = 0; i < MAX_SIZE; i++){
+        c->buffer[i] = 'a';
     }
     inicio = timestamp();
-    printf ("Enviando %d pacotes para o servidor via TCP\n", num);
+    printf ("Enviando %d bytes para o servidor via TCP\n", num*MAX_SIZE);
+    int val = IP_PMTUDISC_DO;
+    setsockopt(c->sockfd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
+    val = 1;
+    setsockopt(c->sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&val, sizeof(int));
     for (int i = 0; i < num; i++){
         bytes = write(c->sockfd, c->buffer, sizeof(c->buffer));
     }
-    fim = timestamp() - inicio;
-    printf ("Pacotes enviados para o servidor\n");
+    fim = abs(timestamp() - inicio);
+    printf ("Bytes enviados para o servidor\n");
     printf ("Tempo total: %lldms\n", fim);
-    printf ("Vazão: %.2f bytes", (float)(1000*num)/(float)fim);
+    printf ("Vazão: %lld bytes\n", (MAX_SIZE*num)/fim);
+    close(c->sockfd);
 }
 
 void create_server(struct server *s){
@@ -45,6 +52,7 @@ void create_server(struct server *s){
     s->servaddr.sin_family = AF_INET;
     s->servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     s->servaddr.sin_port = htons(8080);
+
     if (bind(s->sockfd, (struct sockaddr*)&(s->servaddr), sizeof(s->servaddr)) != 0){
         printf ("Bind falhou\n");
         exit(1);
@@ -65,15 +73,17 @@ void receive_messages(struct server *s, int num){
     int bytes;
     struct timeval timeout = {5000/1000, (5000%1000)*1000};
     setsockopt(s->connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    printf ("Recebendo pacotes do cliente via TCP, %d pacotes são esperados\n", num);
+    printf ("Recebendo bytes do cliente via TCP, %d bytes são esperados\n", num);
     while (1){
         bytes = read(s->connfd, s->buffer, sizeof(s->buffer));
-        if (bytes == -1)
+        if (bytes == 0)
             break;
         s->cont++;
+        memset(s->buffer, 0, sizeof(s->buffer));
     }
-    printf ("%d\n pacotes recebidos do cliente\n", s->cont);
-    printf ("%.2f%% dos pacotes foram recebidos\n", (float)(s->cont*100)/(float)num);
+    printf ("%lld\n bytes recebidos do cliente\n", s->cont);
+    printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont*100)/(float)(num * MAX_SIZE));
+    close(s->connfd);
 }
 
 int main(int argc, char* argv[]){
@@ -106,6 +116,7 @@ int main(int argc, char* argv[]){
         send_messages(&c, num);
     }
     else{
+        printf ("tmj\n");
         struct server s;
         create_server(&s);
         receive_messages(&s, num);

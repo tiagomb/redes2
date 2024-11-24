@@ -5,18 +5,20 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define MAX_SIZE 1024
+
 struct client {
     struct sockaddr_in servaddr;
     int sockfd;
-    char buffer[1000];
+    char buffer[MAX_SIZE];
 };
 
 struct server {
     struct sockaddr_in servaddr, cli;
     int sockfd;
     int connfd;
-    int cont;
-    char buffer[1000];
+    long long int cont;
+    char buffer[MAX_SIZE];
 };
 
 long long int timestamp();
