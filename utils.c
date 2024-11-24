@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <stdlib.h>
 
 long long int timestamp(){
     struct timeval tv;

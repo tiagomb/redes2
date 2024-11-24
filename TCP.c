@@ -6,12 +6,12 @@
 
 void create_client(struct client *c){
     c->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1){
+    if (c->sockfd == -1){
         printf("Falha ao criar socket\n");
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    c->servaddr.sin_addr.s_addr = ("192.168.1.2");
+    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
     if (connect(c->sockfd, (struct sockaddr*)&(c->servaddr), sizeof(c->servaddr)) != 0){
         printf ("Conexão falhou");
@@ -21,67 +21,64 @@ void create_client(struct client *c){
 
 void send_messages(struct client *c, int num){
     long long int fim, inicio;
+    int bytes;
     for (int i = 0; i < 1000; i++){
         c->buffer[i] = 0;
     }
     inicio = timestamp();
     printf ("Enviando %d pacotes para o servidor via TCP\n", num);
     for (int i = 0; i < num; i++){
-        write(c->sockfd, c->buffer, sizeof(c->buffer));
+        bytes = write(c->sockfd, c->buffer, sizeof(c->buffer));
     }
     fim = timestamp() - inicio;
-    printf ("Pacotes enviados para o servidor\n", num);
-    printf ("Tempo total: %ldmds\n", fim);
+    printf ("Pacotes enviados para o servidor\n");
+    printf ("Tempo total: %lldms\n", fim);
     printf ("Vazão: %.2f bytes", (float)(1000*num)/(float)fim);
 }
 
 void create_server(struct server *s){
     s->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1){
+    if (s->sockfd == -1){
         printf("Falha ao criar socket\n");
         exit(1);
     }
     s->servaddr.sin_family = AF_INET;
     s->servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     s->servaddr.sin_port = htons(8080);
-    if (bind(s->sockfd, (struct sockaddr*)&(s->servaddr), sizeof(servaddr)) != 0){
+    if (bind(s->sockfd, (struct sockaddr*)&(s->servaddr), sizeof(s->servaddr)) != 0){
         printf ("Bind falhou\n");
         exit(1);
     }
-    if ((listen(s->sockfd), 5) != 0){
+    if ((listen(s->sockfd, 5) != 0)){
         printf ("Escuta falhou\n");
         exit(1);
     }
-    int len = sizeof(s->cli);
-    s->connfd = accept(sockfd, (struct sockaddr*)&(s->cli), &len);
-    if (connfd < 0){
+    socklen_t len = sizeof(s->cli);
+    s->connfd = accept(s->sockfd, (struct sockaddr*)&(s->cli), &len);
+    if (s->connfd < 0){
         printf ("Conexão falhou\n");
         exit(1);
     }
 }
 
-void receive_messages(struct server *s){
-    long long int fim, inicio;
+void receive_messages(struct server *s, int num){
     int bytes;
     struct timeval timeout = {5000/1000, (5000%1000)*1000};
-    setsockopt(s->connfd, SOL_SOCKET, SO_RVCTIMEO, &timeout, sizeof(timeout));
-    inicio = timestamp();
-    printf ("Recebendo pacotes do cliente via TCP\n");
+    setsockopt(s->connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    printf ("Recebendo pacotes do cliente via TCP, %d pacotes são esperados\n", num);
     while (1){
         bytes = read(s->connfd, s->buffer, sizeof(s->buffer));
         if (bytes == -1)
             break;
         s->cont++;
     }
-    fim = timestamp() - inicio - 5000;
-    printf ("%d\n pacotes recebidos do servidor\n", s->cont);
-    printf ("Tempo total: %ldms\n", fim);
-    printf ("Vazão: %.2f bytes", (float)(1000*num)/(float)fim);
+    printf ("%d\n pacotes recebidos do cliente\n", s->cont);
+    printf ("%.2f%% dos pacotes foram recebidos\n", (float)(s->cont*100)/(float)num);
 }
 
 int main(int argc, char* argv[]){
-    int num, cflag, sflag;
-    while ((c = getopt(argc, argv, "sc:")) != -1)
+    int num, cflag, sflag, c;
+    while ((c = getopt(argc, argv, "s:c:")) != -1)
         switch(c){
             case 'c':
                 if (sflag || cflag){
@@ -96,10 +93,11 @@ int main(int argc, char* argv[]){
                     printf ("Já existe uma flag ativa\n");
                     exit(1);
                 }
+                num = atoi(optarg);
                 sflag = 1;
                 break;
             default:
-                printf ("Uso: ./TCP -c <num de pacotes> ou ./TCP -s\n");
+                printf ("Uso: ./TCP -c <num de pacotes> ou ./TCP -s <num de pacotes>\n");
                 exit(1);
         }
     if (cflag){
@@ -110,6 +108,6 @@ int main(int argc, char* argv[]){
     else{
         struct server s;
         create_server(&s);
-        receive_messages(&s);
+        receive_messages(&s, num);
     }
 }
