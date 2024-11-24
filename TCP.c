@@ -77,7 +77,7 @@ void receive_messages(struct server *s, int num){
 }
 
 int main(int argc, char* argv[]){
-    int num, cflag, sflag, c;
+    int num = 0, cflag = 0, sflag = 0, c = 0;
     while ((c = getopt(argc, argv, "s:c:")) != -1)
         switch(c){
             case 'c':
