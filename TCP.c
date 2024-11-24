@@ -52,7 +52,6 @@ void create_server(struct server *s){
     s->servaddr.sin_family = AF_INET;
     s->servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     s->servaddr.sin_port = htons(8080);
-
     if (bind(s->sockfd, (struct sockaddr*)&(s->servaddr), sizeof(s->servaddr)) != 0){
         printf ("Bind falhou\n");
         exit(1);
@@ -116,7 +115,6 @@ int main(int argc, char* argv[]){
         send_messages(&c, num);
     }
     else{
-        printf ("tmj\n");
         struct server s;
         create_server(&s);
         receive_messages(&s, num);
