@@ -13,12 +13,57 @@ void create_client(struct client *c){
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
+    inet_aton("10.254.224.60", &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
     if (connect(c->sockfd, (struct sockaddr*)&(c->servaddr), sizeof(c->servaddr)) != 0){
         printf ("Conexão falhou");
         exit(1);
     }
+}
+
+void print_client_data(struct client *c, int num, long long int fim){
+    int bytes = num * MAX_SIZE;
+    char space = ' ';
+    FILE *arq = NULL;
+
+    if (num == 1024){
+        arq = fopen("Client_TCP.txt", "w");
+    }
+    else{
+        arq = fopen("Client_TCP.txt", "a");
+    }
+    
+    if (arq == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    fprintf(arq, "%d", bytes);
+    fprintf(arq, " ");    
+    fprintf(arq, "%lld", fim);
+    fprintf(arq, "\n");
+
+}
+
+//Função para imprimir no arquivo para gráfico 
+void print_server_data(struct server *s, int num){
+    int bytes = num * MAX_SIZE;
+    char space = ' ';
+    FILE *arq = NULL;
+
+    if (num == 1024){
+        arq = fopen("Server_TCP.txt", "w");
+    }
+    else{
+        arq = fopen("Server_TCP.txt", "a");
+    }
+    
+
+    fprintf(arq, "%d", bytes);
+    fprintf(arq, " ");    
+    fprintf(arq, "%lld", s->cont);
+    fprintf(arq, "\n");
+
 }
 
 void send_messages(struct client *c, int num){
@@ -39,7 +84,10 @@ void send_messages(struct client *c, int num){
     fim = abs(timestamp() - inicio);
     printf ("Bytes enviados para o servidor\n");
     printf ("Tempo total: %lldms\n", fim);
-    printf ("Vazão: %lld bytes\n", (MAX_SIZE*num)/fim);
+    /* printf ("Vazão: %lld bytes\n", (MAX_SIZE*num)/fim); */
+    
+    print_client_data(c, num, fim); //Função para imprimir dados do cliente no arquivo "Client_TCP.txt"
+
     close(c->sockfd);
 }
 
@@ -56,7 +104,7 @@ void create_server(struct server *s){
         printf ("Bind falhou\n");
         exit(1);
     }
-    if ((listen(s->sockfd, 5) != 0)){
+    if ((listen(s->sockfd, 2) != 0)){
         printf ("Escuta falhou\n");
         exit(1);
     }
@@ -83,6 +131,9 @@ void receive_messages(struct server *s, int num){
     }
     printf ("%lld bytes recebidos do cliente\n", s->cont);
     printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont*100)/(float)(num * MAX_SIZE));
+    
+    print_server_data(s, num); //Função para imprimir dados do server no arquivo "Server_TCP.txt"
+    
     close(s->connfd);
 }
 

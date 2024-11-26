@@ -12,9 +12,56 @@ void create_client(struct client *c){
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
+    inet_aton("10.254.224.60", &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
 }
+
+//Função para imprimir no arquivo para gráfico (Num_Bytes - Time)
+void print_client_data(struct client *c, int num, long long int fim){
+    int bytes = num * MAX_SIZE;
+    char space = ' ';
+    FILE *arq = NULL;
+
+    if (num == 1024){
+        arq = fopen("Client_UDP.txt", "w");
+    }
+    else{
+        arq = fopen("Client_UDP.txt", "a");
+    }
+    
+    if (arq == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    fprintf(arq, "%d", bytes);
+    fprintf(arq, " ");    
+    fprintf(arq, "%lld", fim);
+    fprintf(arq, "\n");
+
+}
+
+//Função para imprimir no arquivo para gráfico (Num_Bytes - Rec_Bytes)
+void print_server_data(struct server *s, int num){
+    int bytes = num * MAX_SIZE;
+    char space = ' ';
+    FILE *arq = NULL;
+
+    if (num == 1024){
+        arq = fopen("Server_UDP.txt", "w");
+    }
+    else{
+        arq = fopen("Server_UDP.txt", "a");
+    }
+    
+
+    fprintf(arq, "%d", bytes);
+    fprintf(arq, " ");    
+    fprintf(arq, "%lld", s->cont);
+    fprintf(arq, "\n");
+
+}
+
 
 void send_messages(struct client *c, int num){
     long long int fim, inicio;
@@ -30,7 +77,9 @@ void send_messages(struct client *c, int num){
     close(c->sockfd);
     printf ("Bytes enviados para o servidor\n");
     printf ("Tempo total: %lldms\n", fim);
-    printf ("Vazão: %lld bytes\n", MAX_SIZE*num/fim);
+    /* printf ("Vazão: %lld bytes\n", MAX_SIZE*num/fim); */
+
+    print_client_data(c, num, fim); //Função para imprimir dados do cliente no arquivo "Client_UDP.txt"
 }
 
 void create_server(struct server *s){
@@ -66,8 +115,9 @@ void receive_messages(struct server *s, int num){
     }
     printf ("%lld bytes recebidos do servidor\n", s->cont);
     printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont * 100)/(float)(num * MAX_SIZE));
-}
 
+    print_server_data(s, num); //Função para imprimir dados do servidor no arquivo "Server_UDP.txt"
+}
 
 int main(int argc, char* argv[]){
     int num = 0, cflag = 0, sflag = 0, c = 0;
