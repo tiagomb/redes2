@@ -12,17 +12,19 @@ void create_client(struct client *c){
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
+    inet_aton(SERVER_ADDRESS, &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
 }
 
-//Função para imprimir no arquivo para gráfico (Num_Bytes - Time)
-void print_client_data(struct client *c, int num, long long int fim){
+void print_client_data(struct client *c, int num, long long int fim, int nocheck){
     int bytes = num * MAX_SIZE;
     char space = ' ';
     FILE *arq = NULL;
 
-    arq = fopen("Client_UDP.txt", "a");
+    if (nocheck)
+        arq = fopen("Client_UDP_NOCHECK.txt", "a");
+    else
+        arq = fopen("Client_UDP.txt", "a");
     
     if (arq == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -36,13 +38,15 @@ void print_client_data(struct client *c, int num, long long int fim){
 
 }
 
-//Função para imprimir no arquivo para gráfico (Num_Bytes - Rec_Bytes)
-void print_server_data(struct server *s, int num){
+void print_server_data(struct server *s, int num, int nocheck){
     int bytes = num * MAX_SIZE;
     char space = ' ';
     FILE *arq = NULL;
 
-    arq = fopen("Server_UDP.txt", "a");
+    if (nocheck)
+        arq = fopen("Server_UDP_NOCHECK.txt", "a");
+    else
+        arq = fopen("Server_UDP.txt", "a");
 
     if (arq == NULL) {
         perror("Erro ao abrir o arquivo");
@@ -56,12 +60,13 @@ void print_server_data(struct server *s, int num){
 
 }
 
-
-void send_messages(struct client *c, int num){
+void send_messages(struct client *c, int num, int nocheck){
     long long int fim, inicio;
     for (int i = 0; i < MAX_SIZE; i++){
         c->buffer[i] = 'a';
     }
+    if (nocheck)
+        setsockopt(c->sockfd, SOL_SOCKET, SO_NO_CHECK, &(int){1}, sizeof(int));
     inicio = timestamp();
     printf ("Enviando %d bytes para o servidor via UDP\n", num * MAX_SIZE);
     for (int i = 0; i < num; i++){
@@ -70,10 +75,10 @@ void send_messages(struct client *c, int num){
     fim = abs(timestamp() - inicio);
     close(c->sockfd);
     printf ("Bytes enviados para o servidor\n");
-    printf ("Tempo total: %lldms\n", fim);
+    printf ("Tempo total: %lldms\n\n", fim);
     /* printf ("Vazão: %lld bytes\n", MAX_SIZE*num/fim); */
 
-    print_client_data(c, num, fim); //Função para imprimir dados do cliente no arquivo "Client_UDP.txt"
+    print_client_data(c, num, fim, nocheck); //Função para imprimir dados do cliente no arquivo "Client_UDP.txt"
 }
 
 void create_server(struct server *s){
@@ -92,12 +97,12 @@ void create_server(struct server *s){
     }
 }
 
-void receive_messages(struct server *s, int num){
+void receive_messages(struct server *s, int num, int nocheck){
     int bytes;
     socklen_t len = sizeof(s->cli);
     s->cont = 0;
     struct timeval timeout = {3000/1000, (3000%1000)*1000};
-    setsockopt(s->sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    setsockopt(s->sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)); //Timeout necessário para saber quando parar de receber pacotes
     printf ("Recebendo bytes do cliente via UDP, %d bytes são esperados\n", num*MAX_SIZE);
     long long int inicio = timestamp();
     while (1){
@@ -108,16 +113,16 @@ void receive_messages(struct server *s, int num){
         memset(s->buffer, 0, sizeof(s->buffer));
     }
     printf ("%lld bytes recebidos do servidor\n", s->cont);
-    printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont * 100)/(float)(num * MAX_SIZE));
+    printf ("%.2f%% dos bytes foram recebidos\n\n", (float)(s->cont * 100)/(float)(num * MAX_SIZE));
 
-    print_server_data(s, num); //Função para imprimir dados do servidor no arquivo "Server_UDP.txt"
+    print_server_data(s, num, nocheck); //Função para imprimir dados do servidor no arquivo "Server_UDP.txt"
 }
 
 int main(int argc, char* argv[]){
-    int num = 0, cflag = 0, sflag = 0, c = 0;
-    while ((c = getopt(argc, argv, "s:c:")) != -1)
+    int num = 0, cflag = 0, sflag = 0, nocheck = 0, c = 0;
+    while ((c = getopt(argc, argv, "s:c:d")) != -1)
         switch(c){
-            case 'c':
+            case 'c': //Client
                 if (sflag || cflag){
                     printf ("Já existe uma flag ativa\n");
                     exit(1);
@@ -125,13 +130,16 @@ int main(int argc, char* argv[]){
                 cflag = 1;
                 num = atoi(optarg);
                 break;
-            case 's':
+            case 's': //Server
                 if (sflag || cflag){
                     printf ("Já existe uma flag ativa\n");
                     exit(1);
                 }
                 num = atoi(optarg);
                 sflag = 1;
+                break;
+            case 'd': //Disable checksum
+                nocheck = 1;
                 break;
             default:
                 printf ("Uso: ./UDP -c <num de pacotes> ou ./UDP -s <num de pacotes>\n");
@@ -140,11 +148,11 @@ int main(int argc, char* argv[]){
     if (cflag){
         struct client c;
         create_client(&c);
-        send_messages(&c, num);
+        send_messages(&c, num, nocheck);
     }
     else{
         struct server s;
         create_server(&s);
-        receive_messages(&s, num);
+        receive_messages(&s, num, nocheck);
     }
 }

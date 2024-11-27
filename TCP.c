@@ -13,7 +13,7 @@ void create_client(struct client *c){
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
+    inet_aton(SERVER_ADDRESS, &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
     if (connect(c->sockfd, (struct sockaddr*)&(c->servaddr), sizeof(c->servaddr)) != 0){
         printf ("Conexão falhou");
@@ -21,7 +21,7 @@ void create_client(struct client *c){
     }
 }
 
-void print_client_data(struct client *c, int num, long long int fim){
+void print_client_data(struct client *c, int num, long long int fim, int nocheck){
     int bytes = num * MAX_SIZE;
     char space = ' ';
     FILE *arq = NULL;
@@ -40,8 +40,7 @@ void print_client_data(struct client *c, int num, long long int fim){
 
 }
 
-//Função para imprimir no arquivo para gráfico 
-void print_server_data(struct server *s, int num){
+void print_server_data(struct server *s, int num, int nocheck){
     int bytes = num * MAX_SIZE;
     char space = ' ';
     FILE *arq = NULL;
@@ -60,7 +59,7 @@ void print_server_data(struct server *s, int num){
 
 }
 
-void send_messages(struct client *c, int num){
+void send_messages(struct client *c, int num, int nocheck){
     long long int fim, inicio;
     int bytes;
     for (int i = 0; i < MAX_SIZE; i++){
@@ -73,10 +72,10 @@ void send_messages(struct client *c, int num){
     }
     fim = abs(timestamp() - inicio);
     printf ("Bytes enviados para o servidor\n");
-    printf ("Tempo total: %lldms\n", fim);
+    printf ("Tempo total: %lldms\n\n", fim);
     /* printf ("Vazão: %lld bytes\n", (MAX_SIZE*num)/fim); */
     
-    print_client_data(c, num, fim); //Função para imprimir dados do cliente no arquivo "Client_TCP.txt"
+    print_client_data(c, num, fim, nocheck); //Função para imprimir dados do cliente no arquivo "Client_TCP.txt"
 
     close(c->sockfd);
 }
@@ -90,6 +89,7 @@ void create_server(struct server *s){
     s->servaddr.sin_family = AF_INET;
     s->servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     s->servaddr.sin_port = htons(8080);
+    setsockopt(s->sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)); //Necessário para permitir várias execuções consecutivas na mesma porta
     if (bind(s->sockfd, (struct sockaddr*)&(s->servaddr), sizeof(s->servaddr)) != 0){
         printf ("Bind falhou\n");
         exit(1);
@@ -106,7 +106,7 @@ void create_server(struct server *s){
     }
 }
 
-void receive_messages(struct server *s, int num){
+void receive_messages(struct server *s, int num, int nocheck){
     int bytes;
     struct timeval timeout = {3000/1000, (3000%1000)*1000};
     s->cont = 0;
@@ -120,9 +120,9 @@ void receive_messages(struct server *s, int num){
         memset(s->buffer, 0, sizeof(s->buffer));
     }
     printf ("%lld bytes recebidos do cliente\n", s->cont);
-    printf ("%.2f%% dos bytes foram recebidos\n", (float)(s->cont*100)/(float)(num * MAX_SIZE));
+    printf ("%.2f%% dos bytes foram recebidos\n\n", (float)(s->cont*100)/(float)(num * MAX_SIZE));
     
-    print_server_data(s, num); //Função para imprimir dados do server no arquivo "Server_TCP.txt"
+    print_server_data(s, num, nocheck); //Função para imprimir dados do server no arquivo "Server_TCP.txt"
     
     close(s->connfd);
     close(s->sockfd);
@@ -155,11 +155,11 @@ int main(int argc, char* argv[]){
     if (cflag){
         struct client c;
         create_client(&c);
-        send_messages(&c, num);
+        send_messages(&c, num, 0);
     }
     else{
         struct server s;
         create_server(&s);
-        receive_messages(&s, num);
+        receive_messages(&s, num, 0);
     }
 }
