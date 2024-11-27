@@ -38,8 +38,6 @@ do
     ./UDP -s $i >> Server_UDP_LOG.txt
 done
 
-sleep 3
-
 for i in "${packets[@]}"
 do
     ./UDP -s $i -d >> Server_UDP_NOCHECK_LOG.txt
