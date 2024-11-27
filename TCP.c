@@ -68,10 +68,6 @@ void send_messages(struct client *c, int num){
     }
     inicio = timestamp();
     printf ("Enviando %d bytes para o servidor via TCP\n", num*MAX_SIZE);
-    int val = IP_PMTUDISC_DO;
-    setsockopt(c->sockfd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
-    val = 1;
-    setsockopt(c->sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&val, sizeof(int));
     for (int i = 0; i < num; i++){
         bytes = write(c->sockfd, c->buffer, sizeof(c->buffer));
     }
@@ -129,6 +125,7 @@ void receive_messages(struct server *s, int num){
     print_server_data(s, num); //Função para imprimir dados do server no arquivo "Server_TCP.txt"
     
     close(s->connfd);
+    close(s->sockfd);
 }
 
 int main(int argc, char* argv[]){
