@@ -1,21 +1,27 @@
 CFLAGS = -g -O3
+CC = gcc
 
-all: TCP UDP
+objects = TCP.o UDP.o Graphic.o utils.o
+
+all: TCP UDP Graphic
 
 TCP: TCP.o utils.o
-	gcc -o TCP TCP.o utils.o
+	$(CC) -o TCP TCP.o utils.o
 
 UDP: UDP.o utils.o
-	gcc -o UDP UDP.o utils.o
+	$(CC) -o UDP UDP.o utils.o
 
 TCP.o: TCP.c
-	gcc -c TCP.c  $(CFLAGS)
+	$(CC) -c TCP.c  $(CFLAGS)
 
 UDP.o: UDP.c
-	gcc -c UDP.c  $(CFLAGS)
+	$(CC) -c UDP.c  $(CFLAGS)
 
 utils.o: utils.c utils.h
-	gcc -c utils.c  $(CFLAGS)
+	$(CC) -c utils.c  $(CFLAGS)
 
-removeObjects: all
-	rm *.o
+clean: all
+	rm -f $(objects)
+
+purge: clean
+	rm -f TCP UDP
