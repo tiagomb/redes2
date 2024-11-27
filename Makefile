@@ -1,7 +1,7 @@
 CFLAGS = -g -O3
 CC = gcc
 
-objects = TCP.o UDP.o Graphic.o utils.o
+objects = TCP.o UDP.o utils.o
 
 all: TCP UDP Graphic
 
