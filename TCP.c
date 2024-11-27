@@ -38,6 +38,7 @@ void print_client_data(struct client *c, int num, long long int fim, int nocheck
     fprintf(arq, "%lld", fim);
     fprintf(arq, "\n");
 
+    fclose(arq);
 }
 
 void print_server_data(struct server *s, int num, int nocheck){
@@ -52,11 +53,12 @@ void print_server_data(struct server *s, int num, int nocheck){
         return;
     }
 
+    fprintf(arq, "%lld", s->cont);
     fprintf(arq, "%d", bytes);
     fprintf(arq, " ");    
-    fprintf(arq, "%lld", s->cont);
     fprintf(arq, "\n");
 
+    fclose(arq);
 }
 
 void send_messages(struct client *c, int num, int nocheck){
@@ -152,6 +154,7 @@ int main(int argc, char* argv[]){
                 printf ("Uso: ./TCP -c <num de pacotes> ou ./TCP -s <num de pacotes>\n");
                 exit(1);
         }
+
     if (cflag){
         struct client c;
         create_client(&c);

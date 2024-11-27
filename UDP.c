@@ -58,6 +58,7 @@ void print_server_data(struct server *s, int num, int nocheck){
     fprintf(arq, "%lld", s->cont);
     fprintf(arq, "\n");
 
+    fclose(arq);
 }
 
 void send_messages(struct client *c, int num, int nocheck){
