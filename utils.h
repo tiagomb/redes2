@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define MAX_SIZE 1024
+#define MAX_SIZE 10000
 
 struct client {
     struct sockaddr_in servaddr;

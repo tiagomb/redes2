@@ -13,7 +13,7 @@ void create_client(struct client *c){
         exit(1);
     }
     c->servaddr.sin_family = AF_INET;
-    inet_aton("10.254.224.60", &(c->servaddr.sin_addr));
+    inet_aton("192.168.1.2", &(c->servaddr.sin_addr));
     c->servaddr.sin_port = htons(8080);
     if (connect(c->sockfd, (struct sockaddr*)&(c->servaddr), sizeof(c->servaddr)) != 0){
         printf ("Conexão falhou");
@@ -26,13 +26,8 @@ void print_client_data(struct client *c, int num, long long int fim){
     char space = ' ';
     FILE *arq = NULL;
 
-    if (num == 1024){
-        arq = fopen("Client_TCP.txt", "w");
-    }
-    else{
-        arq = fopen("Client_TCP.txt", "a");
-    }
-    
+    arq = fopen("Client_TCP.txt", "a");
+
     if (arq == NULL) {
         perror("Erro ao abrir o arquivo");
         return;
@@ -51,13 +46,12 @@ void print_server_data(struct server *s, int num){
     char space = ' ';
     FILE *arq = NULL;
 
-    if (num == 1024){
-        arq = fopen("Server_TCP.txt", "w");
+    arq = fopen("Server_TCP.txt", "a");
+
+    if (arq == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
     }
-    else{
-        arq = fopen("Server_TCP.txt", "a");
-    }
-    
 
     fprintf(arq, "%d", bytes);
     fprintf(arq, " ");    
@@ -118,7 +112,7 @@ void create_server(struct server *s){
 
 void receive_messages(struct server *s, int num){
     int bytes;
-    struct timeval timeout = {5000/1000, (5000%1000)*1000};
+    struct timeval timeout = {3000/1000, (3000%1000)*1000};
     s->cont = 0;
     setsockopt(s->connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
     printf ("Recebendo bytes do cliente via TCP, %d bytes são esperados\n", num*MAX_SIZE);
