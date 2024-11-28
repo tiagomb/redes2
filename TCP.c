@@ -54,8 +54,8 @@ void print_server_data(struct server *s, int num, int nocheck){
     }
 
     fprintf(arq, "%lld", s->cont);
-    fprintf(arq, "%d", bytes);
-    fprintf(arq, " ");    
+    fprintf(arq, " ");
+    fprintf(arq, "%d", bytes);   
     fprintf(arq, "\n");
 
     fclose(arq);

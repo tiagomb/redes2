@@ -3,7 +3,7 @@ CC = gcc
 
 objects = TCP.o UDP.o utils.o
 
-all: TCP UDP Graphic
+all: TCP UDP
 
 TCP: TCP.o utils.o
 	$(CC) -o TCP TCP.o utils.o

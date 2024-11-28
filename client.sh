@@ -44,4 +44,4 @@ do
     sleep 4
 done
 
-gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Tempo (em segundos)'; plot 'Client_TCP_LOG.txt' using 1:2 with lines title 'TCP', 'Client_UDP_LOG.txt' using 1:2 with lines title 'UDP'"
+gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Tempo (em segundos)'; plot 'Client_TCP.txt' using 1:2 with lines title 'TCP', 'Client_UDP.txt' using 1:2 with lines title 'UDP'"

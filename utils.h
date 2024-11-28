@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 
 #define MAX_SIZE 10000
-#define SERVER_ADDRESS "192.168.1.2"
+#define SERVER_ADDRESS "10.254.223.32"
 
 struct client {
     struct sockaddr_in servaddr;
