@@ -43,6 +43,6 @@ do
     ./UDP -s $i -d >> Server_UDP_NOCHECK_LOG.txt
 done
 
-gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Número de Bytes recebidos'; plot 'Server_TCP.txt' using 1:2 with lines title 'TCP', 'Server_UDP.txt' using 1:2 with lines title 'UDP'"
+gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Porcentagem de Bytes recebidos'; plot 'Server_TCP.txt' using 1:2 with linespoints pointtype 7 title 'TCP', 'Server_UDP.txt' using 1:2 with linespoints pointtype 7 title 'UDP', 'Server_UDP_NOCHECK.txt' using 1:2 with linespoints pointtype 7 title 'UDP\_NOCHECK'"
 
 

@@ -24,7 +24,7 @@ if [ -f Client_UDP_NOCHECK_LOG.txt ]; then
     rm Client_UDP_NOCHECK_LOG.txt
 fi
 
-packets=(1 5 10 50 100 500 1000 5000 10000 50000 100000)
+packets=(1 5 10 50 )
 
 for i in "${packets[@]}"
 do
@@ -44,4 +44,4 @@ do
     sleep 4
 done
 
-gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Tempo (em segundos)'; plot 'Client_TCP.txt' using 1:2 with lines title 'TCP', 'Client_UDP.txt' using 1:2 with lines title 'UDP'"
+gnuplot -p -e "set title 'Comparação entre TCP e UDP'; set xlabel 'Número de Pacotes'; set ylabel 'Tempo (em segundos)'; plot 'Client_TCP_LOG.txt' using 1:2 with lines title 'TCP', 'Client_UDP_LOG.txt' using 1:2 with lines title 'UDP'"
