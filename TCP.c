@@ -33,10 +33,7 @@ void print_client_data(struct client *c, int num, long long int fim, int nocheck
         return;
     }
 
-    fprintf(arq, "%d", bytes);
-    fprintf(arq, " ");    
-    fprintf(arq, "%lld", fim);
-    fprintf(arq, "\n");
+    fprintf(arq, "%d %lld\n", bytes, fim);
 
     fclose(arq);
 }
@@ -53,10 +50,7 @@ void print_server_data(struct server *s, int num, int nocheck){
         return;
     }
 
-    fprintf(arq, "%lld", s->cont);
-    fprintf(arq, " ");
-    fprintf(arq, "%d", bytes);   
-    fprintf(arq, "\n");
+    fprintf(arq, "%d %.2f\n", bytes, (double)s->cont / bytes);
 
     fclose(arq);
 }
