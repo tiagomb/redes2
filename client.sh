@@ -24,7 +24,7 @@ if [ -f Client_UDP_NOCHECK_LOG.txt ]; then
     rm Client_UDP_NOCHECK_LOG.txt
 fi
 
-packets=(1 5 10 50 )
+packets=(1 5 10 50 100 500 1000 5000 10000 50000 100000)
 
 for i in "${packets[@]}"
 do

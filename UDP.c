@@ -50,7 +50,7 @@ void print_server_data(struct server *s, int num, int nocheck){
         return;
     }
 
-    fprintf(arq, "%d %.2f\n", bytes, (double)s->cont / bytes);
+    fprintf(arq, "%d %.2f\n", bytes, (double)s->cont*100 / bytes);
 
 
     fclose(arq);
